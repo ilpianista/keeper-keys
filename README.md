@@ -1,3 +1,6 @@
+[![PyPI - Version](https://img.shields.io/pypi/v/keeper-keys.svg)](https://pypi.org/project/keeper-keys)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/keeper-keys.svg)](https://pypi.org/project/keeper-keys)
+
 # KEYS: Keeper Environment Yielding Secrets
 
 **DISCLAIMER: This project is a private open source project and doesn't have any connection with Keeper Security.**
