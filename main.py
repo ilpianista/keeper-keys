@@ -9,7 +9,9 @@ import sys
 import webbrowser
 import re
 
-SSO_URL_PATTERN = re.compile(r"^(https://keepersecurity\.com/api/rest/sso/\S+)$")
+SSO_URL_PATTERN = re.compile(
+    r"^(https://(?:keepersecurity\.(?:com|eu|ca|jp)|keepersecurity\.com\.au|govcloud\.keepersecurity\.us)/api/rest/sso/\S+)$"
+)
 
 DEFAULT_FIELDS_BY_TYPE = {
     "api": "API Key",
