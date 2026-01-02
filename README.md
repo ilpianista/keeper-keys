@@ -27,7 +27,7 @@ uv tool install .
 
 ## Default field by record type
 
-The `--field` argument defaults to `password` for _Login_ records and to `API Key` for _API_ records.
+The `--field` argument defaults to `password` for _Login_ and _Secure Note_ records and to `API Key` for _API_ records.
 
 ## SSO login
 

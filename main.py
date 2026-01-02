@@ -14,6 +14,7 @@ SSO_URL_PATTERN = re.compile(r"^(https://keepersecurity\.com/api/rest/sso/\S+)$"
 DEFAULT_FIELDS_BY_TYPE = {
     "api": "API Key",
     "login": "password",
+    "secure note": "password",
 }
 
 KEEPER_COMMANDER = "keeper"
