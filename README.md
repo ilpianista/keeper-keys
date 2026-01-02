@@ -7,6 +7,8 @@
 
 A straightforward CLI wrapper for [Keeper Commander](https://docs.keeper.io/en/keeperpam/commander-cli/overview) that simplifies extracting secrets to setup environment variables.
 
+`keeper find-password` does the same thing, except it doesn't handle SSO automatically and needs the `--field` parameter to work with _API_ records.
+
 ## Usage
 
 ```bash

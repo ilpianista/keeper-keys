@@ -81,14 +81,16 @@ def run_keeper_get(record_name: str, debug: bool = False) -> dict:
     json_start = stdout.find("{")
     if json_start == -1:
         print("No JSON found in keeper output", file=sys.stderr)
-        print(f"Output was: {stdout}", file=sys.stderr)
+        if debug:
+            print(f"Output was: {stdout}", file=sys.stderr)
         sys.exit(1)
 
     try:
         return json.loads(stdout[json_start:])
     except json.JSONDecodeError as e:
         print(f"Failed to parse keeper output: {e}", file=sys.stderr)
-        print(f"Output was: {stdout}", file=sys.stderr)
+        if debug:
+            print(f"Output was: {stdout}", file=sys.stderr)
         sys.exit(1)
 
 
