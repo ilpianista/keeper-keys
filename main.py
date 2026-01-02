@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""
+KEYS: Keeper Environment Yielding Secrets
+A wrapper for Keeper Commander CLI to simplify secret extraction for environment variables.
+
+Usage:
+    export FOO_PWD="$(keys 'Foo bar')"
+    export API_KEY="$(keys 'My API' --field 'Custom Field')"
+"""
+
+import argparse
+import getpass
+import json
+import subprocess
+import sys
+import webbrowser
+import re
+
+SSO_URL_PATTERN = re.compile(r"^(https://keepersecurity\.com/api/rest/sso/\S+)$")
+
+DEFAULT_FIELDS_BY_TYPE = {
+    "api": "API Key",
+    "login": "password",
+}
+
+
+def run_keeper_get(record_name: str, debug: bool = False) -> dict:
+    """Run keeper get command and return parsed JSON, handling SSO if needed."""
+    cmd = ["keeper", "get", record_name, "--format", "json"]
+
+    if debug:
+        print(f"Running: {' '.join(cmd)}", file=sys.stderr)
+
+    # Run keeper with piped stdin so we can send commands for SSO automation
+    process = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    if debug:
+        print("Process started, reading stdout...", file=sys.stderr)
+
+    # Read stdout line by line to detect SSO URL and automate login
+    stdout_lines = []
+    sso_handled = False
+    for line in process.stdout:
+        if debug:
+            print(f"Got line: {line!r}", file=sys.stderr)
+        stdout_lines.append(line)
+
+        if not sso_handled:
+            sso_match = SSO_URL_PATTERN.search(line.strip())
+            if sso_match:
+                sso_url = sso_match.group(1)
+                webbrowser.open(sso_url)
+
+                # Read token from user (hidden input)
+                # Write prompt to stderr so it works when stdout is piped
+                try:
+                    token = getpass.getpass(
+                        "Paste the login token: ", stream=sys.stderr
+                    )
+                except OSError:
+                    # Not running in a terminal - can't do interactive SSO
+                    print("SSO login required but no TTY available.", file=sys.stderr)
+                    sys.exit(1)
+
+                # Send token directly to keeper
+                if token:
+                    process.stdin.write(token + "\n")
+                    process.stdin.flush()
+                sso_handled = True
+
+    process.wait()
+    stdout = "".join(stdout_lines)
+
+    if process.returncode != 0:
+        print(f"Error running keeper (exit {process.returncode})", file=sys.stderr)
+        sys.exit(1)
+
+    # Extract JSON from output (may contain SSO prompts before the JSON)
+    json_start = stdout.find("{")
+    if json_start == -1:
+        print("No JSON found in keeper output", file=sys.stderr)
+        print(f"Output was: {stdout}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        return json.loads(stdout[json_start:])
+    except json.JSONDecodeError as e:
+        print(f"Failed to parse keeper output: {e}", file=sys.stderr)
+        print(f"Output was: {stdout}", file=sys.stderr)
+        sys.exit(1)
+
+
+def extract_field_value(record: dict, field_name: str | None) -> str:
+    """Extract field value from record, using smart defaults based on record type."""
+    record_type = record.get("type", "").lower()
+
+    # Determine which field to extract
+    if field_name is None:
+        field_name = DEFAULT_FIELDS_BY_TYPE.get(record_type)
+        if field_name is None:
+            print(
+                f"No default field for record type '{record_type}'. Please specify --field.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    # Search in fields array
+    fields = record.get("fields", [])
+    for field in fields:
+        field_type = field.get("type", "")
+        field_label = field.get("label", "")
+
+        # For text fields, match by label
+        if field_type == "text":
+            if field_label.lower() == field_name.lower():
+                values = field.get("value", [])
+                return values[0] if values else ""
+        # For other fields, match by type
+        elif field_type.lower() == field_name.lower():
+            values = field.get("value", [])
+            return values[0] if values else ""
+
+    # Search in custom fields
+    custom_fields = record.get("custom", [])
+    for field in custom_fields:
+        field_type = field.get("type", "")
+        field_label = field.get("label", "")
+
+        if field_type == "text":
+            if field_label.lower() == field_name.lower():
+                values = field.get("value", [])
+                return values[0] if values else ""
+        elif field_type.lower() == field_name.lower():
+            values = field.get("value", [])
+            return values[0] if values else ""
+        # Also check label for non-text fields
+        elif field_label.lower() == field_name.lower():
+            values = field.get("value", [])
+            return values[0] if values else ""
+
+    print(f"Field '{field_name}' not found in record.", file=sys.stderr)
+    sys.exit(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="keys",
+        description="KEYS: Keeper Environment Yielding Secrets - Extract secrets for environment variables",
+        epilog="Example: export FOO_PWD=\"$(keys 'Foo bar')\"",
+    )
+    parser.add_argument("record", help="Record name to fetch from Keeper")
+    parser.add_argument(
+        "--field", "-f", help="Field to extract (defaults based on record type)"
+    )
+    parser.add_argument(
+        "--debug", "-d", action="store_true", help="Enable debug output"
+    )
+
+    args = parser.parse_args()
+
+    record = run_keeper_get(args.record, debug=args.debug)
+    value = extract_field_value(record, args.field)
+    print(value, end="")
+
+
+if __name__ == "__main__":
+    main()

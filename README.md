@@ -1,0 +1,39 @@
+# KEYS: Keeper Environment Yielding Secrets
+
+**DISCLAIMER: This project is a private open source project and doesn't have any connection with Keeper Security.**
+
+A Straightforward CLI wrapper for [Keeper Commander](https://docs.keeper.io/en/keeperpam/commander-cli/overview) that simplifies extracting secrets to setup environment variables.
+
+## Usage
+
+```bash
+# Set environment variable from a Keeper record
+export OPENAI_API_KEY="$(keys 'OpenAI')"
+
+# Specify a custom field
+export SECRET="$(keys 'My secert record' --field 'password2')"
+```
+
+## Installation
+
+```bash
+uv tool install .
+```
+
+**Note**: requires Keeper Commander to be installed and configured.
+
+## Default field by record type
+
+The `--field` argument defaults to `password` for _login_ records and to `API Key` for _API_ records.
+
+## SSO login
+
+If SSO login is required, KEYS will automatically open the SSO login URL in your browser and wait till you to paste the login token in the terminal.
+
+## Donate
+
+Donations via [Liberapay](https://liberapay.com/ilpianista) or Bitcoin (1Ph3hFEoQaD4PK6MhL3kBNNh9FZFBfisEH) are always welcomed, _thank you_!
+
+## License
+
+MIT
