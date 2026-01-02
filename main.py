@@ -3,6 +3,7 @@
 import argparse
 import getpass
 import json
+import shutil
 import subprocess
 import sys
 import webbrowser
@@ -15,10 +16,12 @@ DEFAULT_FIELDS_BY_TYPE = {
     "login": "password",
 }
 
+KEEPER_COMMANDER = "keeper"
+
 
 def run_keeper_get(record_name: str, debug: bool = False) -> dict:
     """Run keeper get command and return parsed JSON, handling SSO if needed."""
-    cmd = ["keeper", "get", record_name, "--format", "json"]
+    cmd = [KEEPER_COMMANDER, "get", record_name, "--format", "json"]
 
     if debug:
         print(f"Running: {' '.join(cmd)}", file=sys.stderr)
@@ -141,6 +144,13 @@ def extract_field_value(record: dict, field_name: str | None) -> str:
 
 
 def main():
+    if shutil.which(KEEPER_COMMANDER) is None:
+        print(
+            f"Error: {KEEPER_COMMANDER} command not found. Please install Keeper Commander.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     parser = argparse.ArgumentParser(
         prog="keys",
         description="KEYS: Straightforward CLI wrapper for Keeper Commander",
