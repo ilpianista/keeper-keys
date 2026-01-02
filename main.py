@@ -74,8 +74,16 @@ def run_keeper_get(record_name: str, debug: bool = False) -> dict:
     stdout = "".join(stdout_lines)
 
     if process.returncode != 0:
-        print(f"Error running keeper (exit {process.returncode})", file=sys.stderr)
-        sys.exit(1)
+        stderr_lines = []
+        for line in process.stderr:
+            if debug:
+                print(f"Got line: {line!r}", file=sys.stderr)
+            stderr_lines.append(line)
+        stderr = "".join(stderr_lines)
+
+        if process.returncode == 1 and "Cannot find any object with UID" in stderr:
+            print("Cannot find any object with UID", file=sys.stderr)
+        sys.exit(process.returncode)
 
     # Extract JSON from output (may contain SSO prompts before the JSON)
     json_start = stdout.find("{")
