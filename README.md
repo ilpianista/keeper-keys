@@ -5,7 +5,7 @@
 
 **DISCLAIMER: This project is a private open source project and doesn't have any connection with Keeper Security.**
 
-A Straightforward CLI wrapper for [Keeper Commander](https://docs.keeper.io/en/keeperpam/commander-cli/overview) that simplifies extracting secrets to setup environment variables.
+A straightforward CLI wrapper for [Keeper Commander](https://docs.keeper.io/en/keeperpam/commander-cli/overview) that simplifies extracting secrets to setup environment variables.
 
 ## Usage
 
@@ -27,11 +27,11 @@ uv tool install .
 
 ## Default field by record type
 
-The `--field` argument defaults to `password` for _login_ records and to `API Key` for _API_ records.
+The `--field` argument defaults to `password` for _Login_ records and to `API Key` for _API_ records.
 
 ## SSO login
 
-If SSO login is required, KEYS will automatically open the SSO login URL in your browser and wait till you to paste the login token in the terminal.
+If SSO login is required, KEYS will automatically open the SSO login URL in your browser and wait till you paste the obtained login token in the terminal.
 
 ## Donate
 
