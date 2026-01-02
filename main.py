@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-KEYS: Keeper Environment Yielding Secrets
-A wrapper for Keeper Commander CLI to simplify secret extraction for environment variables.
-
-Usage:
-    export FOO_PWD="$(keys 'Foo bar')"
-    export API_KEY="$(keys 'My API' --field 'Custom Field')"
-"""
 
 import argparse
 import getpass
@@ -151,8 +143,8 @@ def extract_field_value(record: dict, field_name: str | None) -> str:
 def main():
     parser = argparse.ArgumentParser(
         prog="keys",
-        description="KEYS: Keeper Environment Yielding Secrets - Extract secrets for environment variables",
-        epilog="Example: export FOO_PWD=\"$(keys 'Foo bar')\"",
+        description="KEYS: Straightforward CLI wrapper for Keeper Commander",
+        epilog="Example: export OPENAPI_API_KEY=\"$(keys 'OpenAI')\"",
     )
     parser.add_argument("record", help="Record name to fetch from Keeper")
     parser.add_argument(
