@@ -11,6 +11,8 @@ A straightforward CLI wrapper for [Keeper Commander](https://docs.keeper.io/en/k
 
 ## Usage
 
+![](demo/keys.gif)
+
 ```bash
 # Set environment variable from a Keeper record
 export OPENAI_API_KEY="$(keys 'OpenAI')"
