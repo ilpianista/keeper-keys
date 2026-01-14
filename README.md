@@ -19,6 +19,12 @@ export OPENAI_API_KEY="$(keys 'OpenAI')"
 
 # Specify a custom field
 export SECRET="$(keys 'My secert record' --field 'password2')"
+
+# Insert a new login secret
+keys --insert OpenAI
+
+# Insert a new login secret in a folder (however, the folder MUST exists)
+keys --insert "Tools/OpenAI"
 ```
 
 ## Installation
