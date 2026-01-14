@@ -28,3 +28,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 include = ["main.py"]
+
+[project.urls]
+Homepage = "https://github.com/ilpianista/keeper-keys"
