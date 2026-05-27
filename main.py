@@ -3,11 +3,13 @@
 import argparse
 import getpass
 import json
+import os
 import shutil
 import subprocess
 import sys
 import webbrowser
 import re
+from pathlib import Path
 
 SSO_URL_PATTERN = re.compile(
     r"^(https://(?:keepersecurity\.(?:com|eu|ca|jp)|keepersecurity\.com\.au|govcloud\.keepersecurity\.us)/api/rest/sso/\S+)$"
@@ -20,6 +22,48 @@ DEFAULT_FIELDS_BY_TYPE = {
 }
 
 KEEPER_COMMANDER = "keeper"
+
+
+def is_wsl() -> bool:
+    """Detect whether we're running inside WSL."""
+    if "microsoft" in os.uname().release.lower():
+        return True
+    try:
+        return "microsoft" in Path("/proc/version").read_text().lower()
+    except OSError:
+        return False
+
+
+def open_url(url: str, debug: bool = False) -> bool:
+    """Open a URL in the user's default browser.
+
+    Under WSL, Python's `webbrowser` module typically can't find a usable
+    Linux browser and silently fails, so we delegate to the Windows shell
+    via `cmd.exe /c start` which honors the user's Windows default browser.
+    """
+    if is_wsl():
+        # `start` is a cmd.exe builtin. The empty "" is the window title
+        # (required when the URL is quoted to avoid `start` treating it as one).
+        try:
+            subprocess.run(
+                ["cmd.exe", "/c", "start", "", url],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return True
+        except (FileNotFoundError, subprocess.CalledProcessError) as e:
+            if debug:
+                print(f"cmd.exe failed to open URL: {e}", file=sys.stderr)
+            # Fall through to webbrowser as a last resort
+
+    opened = webbrowser.open(url)
+    if not opened:
+        print(
+            f"Could not open browser automatically. Please open this URL manually:\n{url}",
+            file=sys.stderr,
+        )
+    return opened
 
 
 def run_keeper_command(cmd: list[str], debug: bool = False) -> tuple[int, str, str]:
@@ -54,7 +98,7 @@ def run_keeper_command(cmd: list[str], debug: bool = False) -> tuple[int, str, s
             sso_match = SSO_URL_PATTERN.search(line.strip())
             if sso_match:
                 sso_url = sso_match.group(1)
-                webbrowser.open(sso_url)
+                open_url(sso_url, debug=debug)
 
                 # Read token from user (hidden input)
                 # Write prompt to stderr so it works when stdout is piped
